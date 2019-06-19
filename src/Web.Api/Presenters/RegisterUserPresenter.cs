@@ -1,23 +1,16 @@
 ﻿using System.Net;
-using Web.Api.Core.Dto.UseCaseResponses;
+using Web.Api.Core.DTO.UseCaseResponses;
 using Web.Api.Core.Interfaces;
 using Web.Api.Serialization;
 
 namespace Web.Api.Presenters
 {
-    public sealed class RegisterUserPresenter : IOutputPort<RegisterUserResponse>
+    public sealed class RegisterUserPresenter : PresenterBase<RegisterUserResponse>
     {
-        public JsonContentResult ContentResult { get; }
-
-        public RegisterUserPresenter()
+        public override void Handle(RegisterUserResponse response)
         {
-            ContentResult = new JsonContentResult();
-        }
-
-        public void Handle(RegisterUserResponse response)
-        {
-            ContentResult.StatusCode = (int)(response.Success ? HttpStatusCode.OK : HttpStatusCode.BadRequest);
-            ContentResult.Content = JsonSerializer.SerializeObject(response);
+            base.Handle(response);
+            ContentResult.StatusCode = (int)(response.Success ? HttpStatusCode.Created : HttpStatusCode.BadRequest);
         }
     }
 }

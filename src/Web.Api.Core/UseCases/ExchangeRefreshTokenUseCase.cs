@@ -1,7 +1,8 @@
 ﻿using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using Web.Api.Core.Dto.UseCaseRequests;
-using Web.Api.Core.Dto.UseCaseResponses;
+using Web.Api.Core.DTO.UseCaseRequests;
+using Web.Api.Core.DTO.UseCaseResponses;
 using Web.Api.Core.Interfaces;
 using Web.Api.Core.Interfaces.Gateways.Repositories;
 using Web.Api.Core.Interfaces.Services;
@@ -18,7 +19,6 @@ namespace Web.Api.Core.UseCases
         private readonly IJwtFactory _jwtFactory;
         private readonly ITokenFactory _tokenFactory;
 
-
         public ExchangeRefreshTokenUseCase(IJwtTokenValidator jwtTokenValidator, IUserRepository userRepository, IJwtFactory jwtFactory, ITokenFactory tokenFactory)
         {
             _jwtTokenValidator = jwtTokenValidator;
@@ -34,19 +34,19 @@ namespace Web.Api.Core.UseCases
             // invalid token/signing key was passed and we can't extract user claims
             if (cp != null)
             {
-                var id = cp.Claims.First(c => c.Type == "id");
-                var user = await _userRepository.GetSingleBySpec(new UserSpecification(id.Value));
-
-                if (user.HasValidRefreshToken(message.RefreshToken))
+                Claim claim = cp.Claims.First(c => c.Type == "id");
+                var user = await _userRepository.GetSingleBySpec(new UserSpecification(claim.Value));
+                if (user != null && user.HasValidRefreshToken(message.RefreshToken))
                 {
                     var jwtToken = await _jwtFactory.GenerateEncodedToken(user.IdentityId, user.UserName);
                     var refreshToken = _tokenFactory.GenerateToken();
                     user.RemoveRefreshToken(message.RefreshToken); // delete the token we've exchanged
-                    user.AddRefreshToken(refreshToken, user.Id, ""); // add the new one
+                    user.AddRefreshToken(refreshToken, ""); // add the new one
                     await _userRepository.Update(user);
                     outputPort.Handle(new ExchangeRefreshTokenResponse(jwtToken, refreshToken, true));
                     return true;
-                }
+                } else if (user == null)
+                    outputPort.Handle(new ExchangeRefreshTokenResponse(false, "Invalid user!"));
             }
             outputPort.Handle(new ExchangeRefreshTokenResponse(false, "Invalid token."));
             return false;

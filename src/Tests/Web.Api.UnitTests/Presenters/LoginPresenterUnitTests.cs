@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Net;
 using Newtonsoft.Json;
-using Web.Api.Core.Dto;
-using Web.Api.Core.Dto.UseCaseResponses;
+using Web.Api.Core.DTO;
+using Web.Api.Core.DTO.UseCaseResponses;
 using Web.Api.Presenters;
 using Xunit;
 
@@ -46,10 +46,10 @@ namespace Web.Api.UnitTests.Presenters
             var presenter = new LoginPresenter();
 
             // act
-            presenter.Handle(new LoginResponse(new[] { new Error("", "Invalid username/password") }));
+            presenter.Handle(new LoginResponse(new List<Error> { new Error("", "Invalid username/password") }));
 
             // assert
-            var data = JsonConvert.DeserializeObject<IEnumerable<Error>>(presenter.ContentResult.Content);
+            var data = JsonConvert.DeserializeObject<List<Error>>(presenter.ContentResult.Content);
             Assert.Equal((int)HttpStatusCode.Unauthorized, presenter.ContentResult.StatusCode);
             Assert.Equal("Invalid username/password", data.First().Description);
         }

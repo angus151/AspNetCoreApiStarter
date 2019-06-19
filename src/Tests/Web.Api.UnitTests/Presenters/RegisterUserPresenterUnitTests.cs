@@ -1,6 +1,9 @@
-﻿using System.Net;
+﻿using System.Linq;
+using System.Collections.Generic;
+using System.Net;
 using Newtonsoft.Json;
-using Web.Api.Core.Dto.UseCaseResponses;
+using Web.Api.Core.DTO;
+using Web.Api.Core.DTO.UseCaseResponses;
 using Web.Api.Presenters;
 using Xunit;
 
@@ -18,7 +21,7 @@ namespace Web.Api.UnitTests.Presenters
             presenter.Handle(new RegisterUserResponse("", true));
 
             // assert
-            Assert.Equal((int)HttpStatusCode.OK, presenter.ContentResult.StatusCode);
+            Assert.Equal((int)HttpStatusCode.Created, presenter.ContentResult.StatusCode);
         }
 
         [Fact]
@@ -43,12 +46,14 @@ namespace Web.Api.UnitTests.Presenters
             var presenter = new RegisterUserPresenter();
 
             // act
-            presenter.Handle(new RegisterUserResponse(new[] { "missing first name" }));
+            presenter.Handle(new RegisterUserResponse(new List<Error>() { new Error(null, "missing first name") }));
 
             // assert
-            dynamic data = JsonConvert.DeserializeObject(presenter.ContentResult.Content);
-            Assert.False(data.success.Value);
-            Assert.Equal("missing first name", data.errors.First.Value);
+            List<Error> errors = Serialization.JsonSerializer.DeSerializeObject<List<Error>>(presenter.ContentResult.Content);
+            Assert.Equal((int)HttpStatusCode.BadRequest, presenter.ContentResult.StatusCode);
+            Assert.NotNull(errors);
+            Assert.NotEmpty(errors);
+            Assert.Equal("missing first name", errors.First().Description);
         }
     }
 }

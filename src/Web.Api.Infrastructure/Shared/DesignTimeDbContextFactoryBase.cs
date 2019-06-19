@@ -26,8 +26,9 @@ namespace Web.Api.Infrastructure.Shared
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(basePath)
-                .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{environmentName}.json", true)
+                .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile($"appsettings.{environmentName}.json", true, true)
+                .AddJsonFile($"appsettings.mysql.json", true, true)
                 .AddEnvironmentVariables();
 
             var config = builder.Build();
@@ -53,7 +54,7 @@ namespace Web.Api.Infrastructure.Shared
 
             Console.WriteLine("DesignTimeDbContextFactory.Create(string): Connection string: {0}", connectionString);
 
-            optionsBuilder.UseSqlServer(connectionString);
+            optionsBuilder.UseMySQL(connectionString);
 
             var options = optionsBuilder.Options;
             return CreateNewInstance(options);

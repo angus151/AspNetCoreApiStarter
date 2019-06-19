@@ -1,9 +1,10 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Web.Api.Core.Dto.UseCaseRequests;
+using Web.Api.Core.DTO.UseCaseRequests;
 using Web.Api.Core.Interfaces.UseCases;
-using Web.Api.Models.Settings;
+using Web.Api.Infrastructure.Auth;
 using Web.Api.Presenters;
 
 namespace Web.Api.Controllers
@@ -17,7 +18,6 @@ namespace Web.Api.Controllers
         private readonly IExchangeRefreshTokenUseCase _exchangeRefreshTokenUseCase;
         private readonly ExchangeRefreshTokenPresenter _exchangeRefreshTokenPresenter;
         private readonly AuthSettings _authSettings;
-        
         public AuthController(ILoginUseCase loginUseCase, LoginPresenter loginPresenter, IExchangeRefreshTokenUseCase exchangeRefreshTokenUseCase, ExchangeRefreshTokenPresenter exchangeRefreshTokenPresenter, IOptions<AuthSettings> authSettings)
         {
             _loginUseCase = loginUseCase;
@@ -29,6 +29,8 @@ namespace Web.Api.Controllers
 
         // POST api/auth/login
         [HttpPost("login")]
+        [AllowAnonymous]
+        //[ValidateAntiForgeryToken]
         public async Task<ActionResult> Login([FromBody] Models.Request.LoginRequest request)
         {
             if (!ModelState.IsValid) { return BadRequest(ModelState); }

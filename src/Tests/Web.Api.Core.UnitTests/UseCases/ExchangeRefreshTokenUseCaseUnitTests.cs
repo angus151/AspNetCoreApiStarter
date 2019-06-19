@@ -1,9 +1,9 @@
 ﻿using System.Security.Claims;
 using Moq;
 using Web.Api.Core.Domain.Entities;
-using Web.Api.Core.Dto;
-using Web.Api.Core.Dto.UseCaseRequests;
-using Web.Api.Core.Dto.UseCaseResponses;
+using Web.Api.Core.DTO;
+using Web.Api.Core.DTO.UseCaseRequests;
+using Web.Api.Core.DTO.UseCaseResponses;
 using Web.Api.Core.Interfaces;
 using Web.Api.Core.Interfaces.Gateways.Repositories;
 using Web.Api.Core.Interfaces.Services;
@@ -32,6 +32,8 @@ namespace Web.Api.Core.UnitTests.UseCases
 
             // assert
             Assert.False(response);
+            mockJwtTokenValidator.VerifyAll();
+            mockOutputPort.VerifyAll();
         }
 
         [Fact]
@@ -46,7 +48,8 @@ namespace Web.Api.Core.UnitTests.UseCases
 
             const string refreshToken = "1234";
             var user = new User("", "", "", "");
-            user.AddRefreshToken(refreshToken, 0, "");
+            user.Id = 0;
+            user.AddRefreshToken(refreshToken, "");
 
             var mockUserRepository = new Mock<IUserRepository>();
             mockUserRepository.Setup(repo => repo.GetSingleBySpec(It.IsAny<UserSpecification>())).ReturnsAsync(user);
@@ -67,6 +70,9 @@ namespace Web.Api.Core.UnitTests.UseCases
 
             // assert
             Assert.True(response);
+            mockJwtTokenValidator.VerifyAll();
+            mockOutputPort.VerifyAll();
+            mockTokenFactory.VerifyAll();
         }
     }
 }
